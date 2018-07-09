@@ -1,0 +1,92 @@
+---
+title: "machine learning"
+output: html_document
+---
+
+## Andrew Ng's machine learning coursera course notes
+Notation for multiple linear regression:
+n- number features
+x^(i): input (feature) of the ith training example
+ho(x) = theta(o) + theta(1)x(1) +...+theta(n)x(n)
+xo = 1 x^(i) = 1, defining this feature that always takes on the value 1. 
+
+superscripts are the ith feature and subscripts are 
+x = [Xo; X1; X2...] where xo = 1
+ø - [øo; ø1; ø2...]
+hø(x) = øoXo + ø1X1 +...+ ønXn
+which equals ø^TX. this is a 1 by (n+1) matrix
+
+Cost function J(Øo, Ø1, Ø2) = 1/2m ∑hø(x^(i) - y^(i))^2 (Sum of squares)
+
+Equivelantly: J(ø) = 1/2m ∑((∑ØjXj^(i)) - y^(i))^2 cost function with inner sum starting at 0 and outer as 1 = m
+
+Gradient descent includes simultaneously updating each coeffient (Ø, in this case) and estimating the next appropriate theta (down the gradient). 
+Øn := Øn - alpha (1/m) ∑(hø(x^(i)) - y^(i)) xn^(i).
+
+```{r pressure, echo=FALSE}
+#simulate some x,y pairs
+rm(list=ls())
+library(ggplot2)
+set.seed(100)
+x_rnd <- rnorm(100, mean = 50, sd = 10)
+y_rnd <- x_rnd + rnorm(100, mean = 4, sd =2) * rnorm(100,mean = 2, sd = 4)
+dat <- as.data.frame(cbind(x_rnd,y_rnd))
+ggplot(dat, aes(x = dat$x_rnd, y = dat$y_rnd, color = 'red')) + geom_point() + geom_smooth(method = 'lm')
+
+````
+
+````{r}
+# create the Cost Function. In this case X are the sets of features and y are the targets with m predictors
+ComputeCost <- function(X,y,m,theta){
+  # initialize
+  J <- 0;
+  #Calculate cost
+  predicted_val <- X%*%theta;    
+  sqrErrors   <- (predicted_val - y)^2; 
+  J <- (1/2)*(1/m) * sum(sqrErrors);
+}
+#set up the parameters
+theta = c(0,0)
+X <- dat$x_rnd
+y <- dat$y_rnd
+X = cbind(1,X) #bind a columns of 1s to the x values. 
+m = length(y)
+cost <-ComputeCost(X,y,m,theta)
+cost #For this iteration, theta was 0,0 and there is (not surprisingly) a very high cost given the strong linear relation between variables
+````
+
+````{r}
+# create Gradient Descent function
+GradientDescent <- function(X, y, theta, alpha, num_iters){
+  m <- length(y)
+  J_hist <- rep(0, num_iters)
+  i=1
+  for (i in 1:num_iters)
+  { 
+    J_hist[i]  <- ComputeCost(X,y,m,theta)
+    x <- X[,2]
+    predicted_val <- theta[1] + theta[2] %*% x #matrix multiplication in R
+    theta_one <- theta[1] - alpha * (1/m) * sum(predicted_val - y)
+    theta_two <- theta[2] - alpha * (1/m) * sum((predicted_val - y) %*% x)
+    theta <- c(theta_one,theta_two)
+  }
+  J_hist[i]  <- ComputeCost(X,y,m,theta)
+ list("theta" = theta, "J_history" = J_hist) 
+}
+
+num_iters <- 1000
+alpha <- 0.0001 #learning rate
+theta <- c(0,0)
+result <- GradientDescent(X,y,theta,alpha,num_iters)
+plot(result$J_history)
+
+result$theta
+summary(result$J_history)
+
+summary(lm(dat$x_rnd ~ dat$y_rnd))
+
+````
+
+
+
+Practical tips to make gradient descent work. Feature scaling: make sure features take on a similar range of values. For example, say you have two features (size of house (0-2000 ft) vs. number bedrooms (1-5)), this will make the contours of the cross function J(Ø) has a tall and skinny elipsis cost function. 
