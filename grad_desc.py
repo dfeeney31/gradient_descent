@@ -38,7 +38,7 @@ theta = np.array([1,1])
 alpha = 0.0001
 m = len(Ys)
 num_iters = 100
-#Xs = np.vstack((np.ones(len(Xs)),Xs)).T
+Xs = np.vstack((np.ones(len(Xs)),Xs)).T
 
 def gradientDescent(Xs,Ys,theta,alpha,num_iters):
     global theta_one
@@ -61,6 +61,8 @@ def gradientDescent(Xs,Ys,theta,alpha,num_iters):
         theta = np.array([thetaOne,thetaOne])
     return [J_hist]
     plt.scatter(J_hist)
+    plt.set_xlabel('Number of iterations')
+    plt.set_ylabel('Cost')
     plt.show()
 
 # p_val = theta[0] + (theta[1] * x)
